@@ -33,7 +33,6 @@ deploy:
     preprod: preprod-todo-app
     develop: dev-todo-app
 
-
 redis:
   image: redis
   restart: always
