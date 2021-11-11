@@ -27,7 +27,7 @@ only:
 deploy:
   provider: heroku
   api_key:
-    secure: ADD_API_KEY_HERE
+    secure: $HEROKU_KEY
   app:
     master: prod-todoapp
     preprod: preprod-todo-app
