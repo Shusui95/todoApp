@@ -1,0 +1,41 @@
+os:
+  - linux
+language: php
+php:
+  - 8.0
+services:
+  - mysql
+cache:
+  directories:
+    - node_modules
+    - vendor
+before_script:
+  - sudo apt-get update
+  - cp .env.travis .env
+  - php artisan key:generate
+  - sudo mysql -e 'create database testing;'
+  - composer self-update
+  - composer install --prefer-source --no-interaction --dev
+  - npm install
+  - php artisan migrate
+script:
+  - vendor/bin/phpunit
+only:
+  - main
+  - preprod
+  - develop
+deploy:
+  provider: heroku
+  api_key:
+    secure: ADD_API_KEY_HERE
+  app:
+    master: prod-todoapp
+    preprod: preprod-todo-app
+    develop: dev-todo-app
+
+
+redis:
+  image: redis
+  restart: always
+  ports:
+    - 16379:6379
