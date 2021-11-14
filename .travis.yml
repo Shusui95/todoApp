@@ -5,35 +5,57 @@ php:
   - 8.0
 services:
   - mysql
-cache:
-  directories:
-    - node_modules
-    - vendor
-before_script:
-  - sudo apt-get update
-  - cp .env.travis .env
-  - php artisan key:generate
-  - sudo mysql -e 'create database testing;'
-  - composer self-update
-  - composer install --prefer-source --no-interaction --dev
-  - npm install
-  - php artisan migrate
-script:
-  - vendor/bin/phpunit
 only:
-  - main
+  - master
   - preprod
   - develop
-deploy:
-  provider: heroku
-  api_key:
-    secure: ADD_API_KEY_HERE
-  app:
-    master: prod-todoapp
-    preprod: preprod-todo-app
-    develop: dev-todo-app
-
-
+cache:
+  directories:
+    - ~/.npm
+    - node_modules
+    - vendor
+before_install:
+  - sudo apt-get update
+  - nvm install node
+  - cp .env.travis .env
+install:
+  - sudo mysql -e 'create database testing;'
+  - composer self-update
+  - composer install --no-interaction --dev
+  - composer dump-autoload
+  - npm install
+jobs:
+  include:
+    # Npm run dev
+    - stage: build dev
+      script:
+        - NODE_ENV=development npm run dev
+      only: develop
+    # Npm run prod
+    - stage: build prod
+      if: branch = preprod || branch = master
+      script:
+        - NODE_ENV=production npm run prod
+    # Tests
+    - stage: unit tests
+      if: branch = develop || branch = preprod
+      script:
+        - vendor/bin/phpunit
+    # Lint
+    - stage: lint
+      if: branch = develop || branch = preprod
+      script:
+        - vendor/bin/phpstan analyse app tests
+    # Deploy
+    - stage: deploy
+      deploy:
+        provider: heroku
+        api_key:
+          secure: i2B5GUiK68eY3/O2yduzuObcoZG77ktK7MXWcfgf6j0RrVrEsOUhkWFdxS1mYS162E5cMXeStckX4jrzIwoaRTrZ+Il2bovQnla96evKuez5517wZ5ev5YW5jzs5yI5nqx7kRnC7MTm2BN3Z5EG0keNOfDNCEdH9vjd80/8L3ejvf9IRySraYt7O+FVbEa3Xj2HjXPtNu3KBqu57zRU50WiqaulojWQyN2+CynM/1MxMWszkYUgwSU8B89zexhn0lyuVmDxqup7KLNxhx/UZsmlnG9ETFAUhQVe4pofXxEgneRiO5vmm+z7LH8yHPYQjWqcxqJ1/jFNfF2MRoV/eipLTD6KEju974bmzZ7mw5ZALpIMK72RwGwuLpUrRDHzGt5UPE1wO/hv0x9XqOjATAY76nkZaxLtHTZKwOAKPfK2OzF/7/D22eJjO9WTDYJZtf0QgbnNGzDiJ79sitmj+2SnfoEGsDO77S7DBWQ1R2qB9719vY4sPD1bSATN3+90vVhDIt46JjBRZPQGcUhEfZ8cRGR6jXsxRsmGoR61+1IC4iLe+4krjbFs69HjNxKi0NIpTNoHZuyWzAndHL4ZaJ+GQbMONr7DbFYl1tY4v70YardHD0ICNOSxJV5OylGOMmHH4JvvN+pQAEZTUVSY6ThSPJRi9KwDY1BDFPSSLyhI=
+        app:
+          master: prod-todoapp
+          preprod: preprod-todo-app
+          develop: dev-todo-app
 redis:
   image: redis
   restart: always
