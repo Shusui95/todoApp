@@ -28,6 +28,7 @@ jobs:
         - php artisan key:generate
     - stage: test
       script:
+        - php artisan key:generate
         - vendor/bin/phpunit
 deploy:
   provider: heroku
