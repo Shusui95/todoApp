@@ -1,29 +1,39 @@
 os:
-- linux
+  - linux
 language: php
 php:
-- 8.0
+  - 8.0
 services:
-- mysql
+  - mysql
 cache:
   directories:
-  - node_modules
-  - vendor
-before_script:
-- sudo apt-get update
-- cp .env.travis .env
-- sudo mysql -e 'create database testing;'
-- composer self-update
-- composer install --no-interaction --dev
-- npm install
-- php artisan key:generate
-- php artisan migrate
-script:
-- vendor/bin/phpunit
+    - node_modules
+    - vendor
 only:
-- master
-- preprod
-- develop
+  - master
+  - preprod
+  - develop
+stages:
+  - build
+  - lint
+  - tests
+  - deploy
+build:
+  stage: build
+  before_script:
+    - sudo apt-get update
+    - cp .env.travis .env
+    - sudo mysql -e 'create database testing;'
+  script:
+    - composer self-update
+    - composer install --no-interaction --dev
+    - npm install
+    - php artisan key:generate
+    - php artisan migrate
+tests:
+  stage: tests
+  script:
+    - vendor/bin/phpunit
 deploy:
   provider: heroku
   api_key:
@@ -36,4 +46,4 @@ redis:
   image: redis
   restart: always
   ports:
-  - 16379:6379
+    - 16379:6379
