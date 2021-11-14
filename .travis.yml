@@ -11,6 +11,7 @@ only:
   - develop
 cache:
   directories:
+    - ~/.npm
     - node_modules
     - vendor
 before_install:
@@ -24,13 +25,22 @@ install:
   - npm install
 jobs:
   include:
-    - stage: build
+    # Npm run dev
+    - stage: build dev
       script:
-        - npm run build
-    - stage: test
+        - NODE_ENV=development npm run dev
+      only: develop
+    # Npm run prod
+    - stage: build prod
+      if: branch = preprod || branch = master
+      script:
+        - NODE_ENV=production npm run prod
+    # Tests
+    - stage: unit tests
       if: branch = develop || branch = preprod
       script:
         - vendor/bin/phpunit
+    # Deploy
     - stage: deploy
       script:
         - vendor/bin/phpunit
