@@ -13,24 +13,26 @@ cache:
   directories:
     - node_modules
     - vendor
-before_script:
+before_install:
   - sudo apt-get update
   - cp .env.travis .env
+install:
   - sudo mysql -e 'create database testing;'
   - composer self-update
-  script:
-    - composer install --no-interaction --dev
-    - composer dump-autoload
-    - npm install
-    - php artisan key:generate
+  - composer install --no-interaction --dev
+  - composer dump-autoload
+  - npm install
 jobs:
   include:
     - stage: build
       script:
         - npm run build
     - stage: test
+      if: branch = develop || branch = preprod
       script:
-        - php artisan key:generate
+        - vendor/bin/phpunit
+    - stage: deploy
+      script:
         - vendor/bin/phpunit
 deploy:
   provider: heroku
