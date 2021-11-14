@@ -13,19 +13,21 @@ cache:
   directories:
     - node_modules
     - vendor
+before_script:
+  - sudo apt-get update
+  - cp .env.travis .env
+  - sudo mysql -e 'create database testing;'
+  - composer self-update
+  script:
+    - composer install --no-interaction --dev
+    - composer dump-autoload
+    - npm install
+    - php artisan key:generate
 jobs:
   include:
     - stage: build
-      before_script:
-        - sudo apt-get update
-        - cp .env.travis .env
-        - sudo mysql -e 'create database testing;'
-        - composer self-update
       script:
-        - composer install --no-interaction --dev
-        - composer dump-autoload
-        - npm install
-        - php artisan key:generate
+        - npm run build
     - stage: test
       script:
         - php artisan key:generate
