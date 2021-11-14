@@ -28,9 +28,9 @@ jobs:
   include:
     # Npm run dev
     - stage: build dev
+      if: branch = develop
       script:
         - NODE_ENV=development npm run dev
-      only: develop
     # Npm run prod
     - stage: build prod
       if: branch = preprod || branch = master
