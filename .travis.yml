@@ -5,35 +5,30 @@ php:
   - 8.0
 services:
   - mysql
-cache:
-  directories:
-    - node_modules
-    - vendor
 only:
   - master
   - preprod
   - develop
-stages:
-  - build
-  - lint
-  - tests
-  - deploy
-build:
-  stage: build
-  before_script:
-    - sudo apt-get update
-    - cp .env.travis .env
-    - sudo mysql -e 'create database testing;'
-  script:
-    - composer self-update
-    - composer install --no-interaction --dev
-    - npm install
-    - php artisan key:generate
-    - php artisan migrate
-tests:
-  stage: tests
-  script:
-    - vendor/bin/phpunit
+cache:
+  directories:
+    - node_modules
+    - vendor
+jobs:
+  include:
+    - stage: build
+      before_script:
+        - sudo apt-get update
+        - cp .env.travis .env
+        - sudo mysql -e 'create database testing;'
+        - composer self-update
+      script:
+        - composer install --no-interaction --dev
+        - composer dump-autoload
+        - npm install
+        - php artisan key:generate
+    - stage: test
+      script:
+        - vendor/bin/phpunit
 deploy:
   provider: heroku
   api_key:
