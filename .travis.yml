@@ -41,6 +41,11 @@ jobs:
       if: branch = develop || branch = preprod
       script:
         - vendor/bin/phpunit
+    # Lint
+    - stage: lint
+      if: branch = develop || branch = preprod
+      script:
+        - vendor/bin/phpstan analyse app tests
     # Deploy
     - stage: deploy
       deploy:
